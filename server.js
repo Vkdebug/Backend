@@ -8,7 +8,7 @@ const path = require('path');
 require('dotenv').config();
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
@@ -145,7 +145,7 @@ app.post('/api/scores/add', (req, res) => {
     });
 });
 
-// NEW: Delete a specific student score
+// Delete a specific student score
 app.delete('/api/scores/:id', (req, res) => {
     db.query("DELETE FROM test_scores WHERE id = ?", [req.params.id], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -213,4 +213,19 @@ app.post('/api/auth/verify-otp', (req, res) => {
     });
 });
 
-app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+// ==========================================
+// VERCEL DEPLOYMENT CONFIGURATION (FIX)
+// ==========================================
+
+// Add a default base route so Vercel doesn't return a 404 error on the home URL
+app.get('/', (req, res) => {
+    res.send("🚀 EduPlatform Backend is successfully running on Vercel!");
+});
+
+// Export the application object for Vercel's serverless handler
+module.exports = app;
+
+// Only listen to a specific local port if we are NOT running on production (Vercel)
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => console.log(`🚀 Server running locally on http://localhost:${PORT}`));
+}
